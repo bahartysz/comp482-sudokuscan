@@ -1,0 +1,6 @@
+matplotlib==3.11.2
+numpy==2.5.4
+opencv-python==5.0.0.93
+pytesseract==0.3.13
+scipy==1.18.1
+# OCR engine (system install): Tesseract 5 - macOS: brew install tesseract | Ubuntu: sudo apt install tesseract-ocr
