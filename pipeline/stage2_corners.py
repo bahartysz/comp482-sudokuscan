@@ -111,3 +111,47 @@ def find_puzzle_region(norm):
         return None
 
     return biggest.reshape(4, 2)
+
+
+
+
+SEARCH_FRAC = 0.03  # Arama yaricapi: genisligin %3'u
+
+
+def select_corners(region, candidates, width):
+    """Bolge koselerine en yakin Harris adaylarini secer."""
+
+    if region is None or len(candidates) == 0:
+        return None
+
+    # Arama yaricapini hesapla
+    radius = width * SEARCH_FRAC
+
+    selected = []
+
+    # Bolgenin dort kosesini kontrol et
+    for corner in region:
+
+        closest = None
+        min_distance = radius
+
+        # Harris adaylarini kontrol et
+        for x, y, score in candidates:
+
+            distance = np.linalg.norm(
+                np.array([x, y]) - corner
+            )
+
+            # Yakin ve daha once secilmemis olmali
+            if distance <= min_distance:
+                if (x, y) not in selected:
+                    closest = (x, y)
+                    min_distance = distance
+
+        # Yakinlarda aday bulunamazsa
+        if closest is None:
+            return None
+
+        selected.append(closest)
+
+    return selected
