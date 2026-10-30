@@ -65,9 +65,12 @@ def find_puzzle_region(norm):
 
     # Siyah beyaz goruntu
     _, binary = cv2.threshold(
-        gray, 0, 255,
-        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        gray, 200, 255,
+        cv2.THRESH_BINARY_INV
     )
+
+        # Hata ayiklama: siyah beyaz goruntuyu kaydet (gecici)
+    cv2.imwrite("results/debug_binary.png", binary)
 
     # Konturlari bul
     contours, _ = cv2.findContours(
