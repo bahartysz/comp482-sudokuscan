@@ -66,7 +66,7 @@ def find_puzzle_region(norm):
     # Siyah beyaz goruntu
     _, binary = cv2.threshold(
         gray, 200, 255,
-        cv2.THRESH_BINARY_INV
+        cv2.THRESH_BINARY_INV 
     )
 
         # Hata ayiklama: siyah beyaz goruntuyu kaydet (gecici)
@@ -93,10 +93,11 @@ def find_puzzle_region(norm):
             continue
 
         # Konturu dortgene yaklastir
-        perimeter = cv2.arcLength(contour, True)
+        hull = cv2.convexHull(contour)
+        perimeter = cv2.arcLength(hull, True)
 
         approx = cv2.approxPolyDP(
-            contour, 0.02 * perimeter, True
+            hull, 0.02 * perimeter, True
         )
 
         # Dort koseli ve disbukey olmali
