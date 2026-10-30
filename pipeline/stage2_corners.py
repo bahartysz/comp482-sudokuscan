@@ -7,7 +7,7 @@ import numpy as np
 HARRIS_BLOCK = 5
 HARRIS_KSIZE = 3
 HARRIS_K = 0.04
-THR = 0.01
+THR = 0.005
 NMS_FRAC = 0.01
 
 
