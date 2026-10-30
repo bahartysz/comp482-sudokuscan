@@ -1,16 +1,7 @@
-"""Etiketleme aracı: kişisel fotoğraflar için ground-truth JSON üretir (Appendix A formatı).
-
+"""
 Kullanım:
     python annotate.py data/personal/s332501004_01.jpg
 
-Akış:
-    1. Genel görünümde köşelere sırayla tıkla: TL, TR, BR, BL (kalın dış çerçevenin DIŞ köşesi).
-    2. Her tıklamadan sonra büyütülmüş pencere açılır; tam köşeye bir kez daha tıkla.
-    3. Dört köşe bitince önizleme gelir: 'y' kaydet, 'r' baştan başla, ESC çık.
-    4. Terminalde bulmacayı (P1/P2/P3) ve koşulları (ör. C2 C5) gir.
-    5. Fotoğrafın yanına aynı adla .json dosyası yazılır.
-
-Not: Bu araç teslim edilen pipeline'ın parçası değildir; sadece etiket hazırlamak içindir.
 """
 import json
 import os
