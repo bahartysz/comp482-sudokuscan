@@ -3,11 +3,10 @@
 
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import glob
+import json
 import os
 
-import json
 from stage4_compare import calculate_tilt
 
 
@@ -17,53 +16,52 @@ def calculate_grid_error(profile):
     errors = []
     positions = []
 
-    # Ideal cizgi konumlari: 0, 50, 100, ..., 450
+    # Ideal ic cizgi konumlari
     for ideal in range(50, 401, 50):
 
-        # Ideal konumun 15 piksel cevresine bak
+        # 15 piksel cevresinde ara
         start = max(0, ideal - 15)
         end = min(len(profile), ideal + 16)
 
-        # En yuksek degerin oldugu konumu bul
+        # En yuksek degeri bul
         part = profile[start:end]
         real = start + np.argmax(part)
 
-        # Gercek ve ideal konum arasindaki fark
+        # Sapmayi hesapla
         error = abs(real - ideal)
 
         errors.append(error)
         positions.append(real)
 
-    # Ortalama sapma
     mean_error = np.mean(errors)
 
-    return mean_error, positions
-
+    # Ortalama, konumlar ve en buyuk sapma
+    return mean_error, positions, max(errors)
 
 
 if __name__ == "__main__":
 
-    # Tum fotograflarin sonuc dosyalarini bul
+    # Tum fotograflarin sonuc dosyalari
     files = glob.glob("results/personal/*_result.json")
 
     for yol in sorted(files):
 
-        # JSON dosyasini oku
         with open(yol, "r") as f:
             result = json.load(f)
 
         if result["verdict"] == "not_found":
             continue
 
-        # Egiklik oranini hesapla
+        # Egiklik hesapla
         tilt = calculate_tilt(result["corners"])
 
-        # Fotograf adini al
+        # Fotograf adi
         name = os.path.basename(yol).replace("_result.json", "")
 
-        # A3, A4 ve H4 sonuclari
         errors = {}
+        max_errors = {}
 
+        # Uc donusumu de kontrol et
         for model in ["A3", "A4", "H4"]:
 
             image_path = yol.replace(
@@ -74,6 +72,7 @@ if __name__ == "__main__":
 
             if gray is None:
                 errors[model] = None
+                max_errors[model] = None
                 continue
 
             # Koyu cizgileri belirginlestir
@@ -83,17 +82,26 @@ if __name__ == "__main__":
             vertical = np.sum(inverse, axis=0)
             horizontal = np.sum(inverse, axis=1)
 
-            # Sapmalari hesapla
-            v_error, _ = calculate_grid_error(vertical)
-            h_error, _ = calculate_grid_error(horizontal)
+            # Ortalama ve maksimum sapmalar
+            v_error, _, v_max = calculate_grid_error(vertical)
+            h_error, _, h_max = calculate_grid_error(horizontal)
 
             errors[model] = (v_error + h_error) / 2
+            max_errors[model] = max(v_max, h_max)
 
         # Sonuclari yazdir
-        print(
-            name,
-            "Egiklik:", round(tilt, 3),
-            "A3:", round(errors["A3"], 2) if errors["A3"] is not None else "yok",
-            "A4:", round(errors["A4"], 2) if errors["A4"] is not None else "yok",
-            "H4:", round(errors["H4"], 2) if errors["H4"] is not None else "yok"
-        )
+        print(name, "Egiklik:", round(tilt, 3), end="  ")
+
+        for model in ["A3", "A4", "H4"]:
+
+            if errors[model] is None:
+                print(model + ": yok", end="  ")
+            else:
+                print(
+                    model + ":",
+                    round(errors[model], 2),
+                    "Max:", max_errors[model],
+                    end="  "
+                )
+
+        print()
