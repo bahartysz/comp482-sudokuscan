@@ -15,7 +15,7 @@ def calculate_grid_error(profile):
     positions = []
 
     # Ideal cizgi konumlari: 0, 50, 100, ..., 450
-    for ideal in range(0, 451, 50):
+    for ideal in range(50, 401, 50):
 
         # Ideal konumun 15 piksel cevresine bak
         start = max(0, ideal - 15)
@@ -40,7 +40,7 @@ def calculate_grid_error(profile):
 if __name__ == "__main__":
 
     # Ilk fotografimizin A3 goruntusunu bul
-    files = glob.glob("results/personal/*_01_rect_A3.png")
+    files = glob.glob("results/personal/*_01_rect_H4.png")
 
     if len(files) == 0:
         print("Goruntu bulunamadi.")
