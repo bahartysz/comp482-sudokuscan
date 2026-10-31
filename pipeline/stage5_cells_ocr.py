@@ -16,8 +16,12 @@ import pytesseract
 from pipeline.stage3_rectify import CELL
 
 MARGIN_FRAC = 0.12      # hücre kenarından kesilen pay (her yandan) = hücrenin %12'si
-MIN_INK_FRAC = 0.03     # en büyük leke kırpılmış hücre alanının en az %3'ü olmalı → dolu
-MIN_HEIGHT_FRAC = 0.30  # ... ve yüksekliği kırpılmış hücrenin en az %30'u olmalı (nokta/gürültü değil)
+# Boş/dolu eşikleri, 32 fotoğraftaki 2592 hücrenin ölçümüne göre (boş 1631, dolu 961):
+#   boş hücrelerde en büyük leke: alan en fazla %3.05, yükseklik en fazla %11
+#   dolu hücrelerde: alan %1'inde %2.26'nın altına iniyor (ince Courier "1"), yükseklik en az %29
+#   İlk değerler (%3 alan, %30 yükseklik) ince/küçük rakamları boş sayıyordu (64 hata).
+MIN_INK_FRAC = 0.01     # en büyük leke kırpılmış hücre alanının en az %1'i olmalı → dolu
+MIN_HEIGHT_FRAC = 0.20  # ... ve yüksekliği kırpılmış hücrenin en az %20'si olmalı (nokta/gürültü değil)
 OCR_HEIGHT = 32         # hazırlanmış rakamın yüksekliği (piksel); 32 ve 48 denendi, 32 daha iyi
 OCR_PAD = 16            # rakamın etrafına eklenen beyaz pay (piksel)
 # Tesseract ayarları (deneme setinde 565 dolu hücre üzerinde karşılaştırıldı):
