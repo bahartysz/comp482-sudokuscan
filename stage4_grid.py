@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import glob
 import os
 
+import json
+from stage4_compare import calculate_tilt
+
 
 def calculate_grid_error(profile):
     """Izgara cizgilerinin ideal konumdan sapmasini bulur."""
@@ -37,25 +40,43 @@ def calculate_grid_error(profile):
     return mean_error, positions
 
 
+
 if __name__ == "__main__":
 
-    # Ilk fotografimizin A3 goruntusunu bul
-    files = glob.glob("results/personal/*_01_rect_H4.png")
+    # Tum fotograflarin sonuc dosyalarini bul
+    files = glob.glob("results/personal/*_result.json")
 
-    if len(files) == 0:
-        print("Goruntu bulunamadi.")
+    for yol in sorted(files):
 
-    else:
-        yol = files[0]
+        # JSON dosyasini oku
+        with open(yol, "r") as f:
+            result = json.load(f)
 
-        # Goruntuyu gri olarak oku
-        gray = cv2.imread(yol, cv2.IMREAD_GRAYSCALE)
+        if result["verdict"] == "not_found":
+            continue
 
-        if gray is None:
-            print("Goruntu okunamadi.")
+        # Egiklik oranini hesapla
+        tilt = calculate_tilt(result["corners"])
 
-        else:
-            # Siyah cizgileri buyuk deger yap
+        # Fotograf adini al
+        name = os.path.basename(yol).replace("_result.json", "")
+
+        # A3, A4 ve H4 sonuclari
+        errors = {}
+
+        for model in ["A3", "A4", "H4"]:
+
+            image_path = yol.replace(
+                "_result.json", f"_rect_{model}.png"
+            )
+
+            gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+            if gray is None:
+                errors[model] = None
+                continue
+
+            # Koyu cizgileri belirginlestir
             inverse = 255 - gray
 
             # Dikey ve yatay profiller
@@ -63,51 +84,16 @@ if __name__ == "__main__":
             horizontal = np.sum(inverse, axis=1)
 
             # Sapmalari hesapla
-            v_error, v_positions = calculate_grid_error(vertical)
-            h_error, h_positions = calculate_grid_error(horizontal)
+            v_error, _ = calculate_grid_error(vertical)
+            h_error, _ = calculate_grid_error(horizontal)
 
-            total_error = (v_error + h_error) / 2
+            errors[model] = (v_error + h_error) / 2
 
-            print("Dikey cizgiler:", v_positions)
-            print("Yatay cizgiler:", h_positions)
-
-            print("Dikey sapma:", round(v_error, 2))
-            print("Yatay sapma:", round(h_error, 2))
-            print("Ortalama sapma:", round(total_error, 2))
-
-            # Grafik icin klasor
-            os.makedirs("rapor_gorselleri", exist_ok=True)
-
-            # Dikey cizgi profili
-            plt.figure(figsize=(9, 4))
-            plt.plot(vertical)
-
-            plt.xlabel("Sutun konumu (piksel)")
-            plt.ylabel("Koyu piksel toplami")
-            plt.title("A3 Dikey Izgara Profili - 01")
-            plt.grid(True)
-
-            plt.savefig(
-                "rapor_gorselleri/stage4_01_dikey_profil.png",
-                dpi=200,
-                bbox_inches="tight"
-            )
-
-            plt.close()
-
-            # Yatay cizgi profili
-            plt.figure(figsize=(9, 4))
-            plt.plot(horizontal)
-
-            plt.xlabel("Satir konumu (piksel)")
-            plt.ylabel("Koyu piksel toplami")
-            plt.title("A3 Yatay Izgara Profili - 01")
-            plt.grid(True)
-
-            plt.savefig(
-                "rapor_gorselleri/stage4_01_yatay_profil.png",
-                dpi=200,
-                bbox_inches="tight"
-            )
-
-            plt.close()
+        # Sonuclari yazdir
+        print(
+            name,
+            "Egiklik:", round(tilt, 3),
+            "A3:", round(errors["A3"], 2) if errors["A3"] is not None else "yok",
+            "A4:", round(errors["A4"], 2) if errors["A4"] is not None else "yok",
+            "H4:", round(errors["H4"], 2) if errors["H4"] is not None else "yok"
+        )
