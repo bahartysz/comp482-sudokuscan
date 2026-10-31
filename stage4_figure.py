@@ -36,10 +36,14 @@ if __name__ == "__main__":
             axes[i].set_title(titles[i])
             axes[i].axis("off")
 
-            # Istege bagli: ideal izgara cizgileri
+            # Ideal izgara cizgileri
             for pos in range(0, 451, 50):
                 axes[i].axhline(pos, color="red", linewidth=0.5)
                 axes[i].axvline(pos, color="red", linewidth=0.5)
+
+            # Goruntunun disina tasmayi engelle
+            axes[i].set_xlim(-0.5, 449.5)
+            axes[i].set_ylim(449.5, -0.5)
 
         plt.tight_layout()
 
