@@ -19,9 +19,9 @@ def calculate_grid_error(profile):
     # Ideal ic cizgi konumlari
     for ideal in range(50, 401, 50):
 
-        # 15 piksel cevresinde ara
-        start = max(0, ideal - 15)
-        end = min(len(profile), ideal + 16)
+        # Ideal cizginin 24 piksel cevresinde ara
+        start = max(0, ideal - 24)
+        end = min(len(profile), ideal + 25)
 
         # En yuksek degeri bul
         part = profile[start:end]
