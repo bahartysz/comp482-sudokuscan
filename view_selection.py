@@ -1,12 +1,12 @@
-"""select_corners sonucunu doğru köşelerle karşılaştırır (Stage 2 geliştirme aracı).
+"""select_corners + order_corners sonucunu doğru köşelerle karşılaştırır (Stage 2 geliştirme aracı).
 
 Kullanım:
     python view_selection.py dev_10
     python view_selection.py data/personal/s332501004_09.jpg
     python view_selection.py all        # deneme seti (20) + kişisel fotoğraflar
 
-Hata, ORİJİNAL fotoğraf piksellerinde ölçülür.
-Sıralama henüz yoksa her doğru köşeye en yakın seçilen köşe kullanılır.
+Köşeler SIRALI karşılaştırılır: 1. seçilen ↔ TL, 2. ↔ TR, 3. ↔ BR, 4. ↔ BL.
+Hata = ödevin tanımı: 4 köşenin ORTALAMA uzaklığı, kenar uzunluğunun yüzdesi.
 Çıktı: results/<ad>_selection.png  (kırmızı = seçilen, yeşil = doğru)
 """
 import glob
@@ -19,7 +19,8 @@ import numpy as np
 
 from pipeline.stage1_preprocess import preprocess, to_original
 from pipeline.stage2_corners import (find_candidates, find_puzzle_region,
-                                     harris_response, select_corners)
+                                     harris_response, order_corners,
+                                     select_corners)
 
 
 def run(arg):
@@ -37,7 +38,7 @@ def run(arg):
     norm, scale = preprocess(img)
     region = find_puzzle_region(norm)
     cands = find_candidates(harris_response(norm))
-    corners = select_corners(region, cands, norm.shape[1])
+    corners = order_corners(select_corners(region, cands, norm.shape[1]))
     if corners is None:
         print(f"{name:15s} köşe SEÇİLEMEDİ")
         return None
@@ -53,19 +54,21 @@ def run(arg):
         return None
     with open(json_path) as f:
         gt = np.array(json.load(f)["corners"])
-    errs = [np.linalg.norm(pts - g, axis=1).min() for g in gt]
+    errs = np.linalg.norm(pts - gt, axis=1)          # sıralı: köşe köşe
+    side = np.mean([np.linalg.norm(gt[k] - gt[(k + 1) % 4]) for k in range(4)])
+    pct = 100 * errs.mean() / side
     for x, y in gt:
         cv2.circle(out, (int(round(x)), int(round(y))), 3 * r, (0, 200, 0), max(2, r // 2))
     cv2.imwrite(f"results/{name}_selection.png", out)
-    print(f"{name:15s} köşe hataları (px): " + "  ".join(f"{e:6.1f}" for e in errs)
-          + f"   en büyük = {max(errs):6.1f}")
-    return max(errs)
+    print(f"{name:15s} TL/TR/BR/BL hata (px): " + "  ".join(f"{e:6.1f}" for e in errs)
+          + f"   köşe hatası = %{pct:.2f}")
+    return pct
 
 
 if sys.argv[1] == "all":
     items = [f"dev_{i:02d}" for i in range(1, 21)] + sorted(glob.glob("data/personal/*.jpg"))
     worst = [w for w in (run(a) for a in items) if w is not None]
     if worst:
-        print(f"\nBaşarılı: {len(worst)}/{len(items)}   en büyük hataların ortancası = {np.median(worst):.1f} px")
+        print(f"\nBaşarılı: {len(worst)}/{len(items)}   ortalama köşe hatası = %{np.mean(worst):.2f}   en kötü = %{max(worst):.2f}")
 else:
     run(sys.argv[1])

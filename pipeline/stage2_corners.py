@@ -153,3 +153,36 @@ def select_corners(region, candidates, width):
         selected.append(closest)
 
     return selected
+
+
+
+def order_corners(corners):
+    """Koseleri TL, TR, BR, BL sirasina dizer."""
+
+    if corners is None or len(corners) != 4:
+        return None
+
+    points = np.array(corners)
+
+    # Dort kosenin merkezini bul
+    center = np.mean(points, axis=0)
+
+    # Koselerin merkeze gore acilarini hesapla
+    angles = np.arctan2(
+        points[:, 1] - center[1],
+        points[:, 0] - center[0]
+    )
+
+    # Acilara gore saat yonunde sirala
+    points = points[np.argsort(angles)]
+
+    # Sol ust koseyi bul (x + y en kucuk)
+    sums = points[:, 0] + points[:, 1]
+    start = np.argmin(sums)
+
+    # Siralamayi sol ustten baslat
+    points = np.concatenate(
+        (points[start:], points[:start])
+    )
+
+    return [tuple(p) for p in points]
