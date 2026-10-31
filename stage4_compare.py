@@ -1,5 +1,5 @@
 
-"""Stage 4: Fotograflarin egiklik oranlarini hesaplama."""
+"""Stage 4: Egiklik ve kose hatalarini karsilastirma."""
 
 import numpy as np
 import glob
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # Sonuc dosyalarini bul
     files = glob.glob("results/personal/*_result.json")
 
-    # Her fotograf icin egiklik hesapla
+    # Her fotograf icin degerleri hesapla
     for yol in sorted(files):
 
         # JSON dosyasini oku
@@ -51,8 +51,17 @@ if __name__ == "__main__":
         # Egiklik oranini hesapla
         tilt = calculate_tilt(corners)
 
+        # A3 ve A4 hatalarini al
+        a3_error = result["a3_corner_err_px"]
+        a4_error = result["a4_rms_px"]
+
         # Dosya adini al
         name = os.path.basename(yol)
 
-        # Sonucu yazdir
-        print(name, "Egiklik:", round(tilt, 3))
+        # Sonuclari yazdir
+        print(
+            name,
+            "Egiklik:", round(tilt, 3),
+            "A3 hata:", round(a3_error, 2),
+            "A4 RMS:", round(a4_error, 2)
+        )
