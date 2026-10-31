@@ -1,5 +1,5 @@
 
-"""Stage 4: A3, A4 ve H4 OCR dogruluklarini karsilastirma."""
+#Stage 4: A3, A4 ve H4 OCR dogruluklarini karsilastirma.
 
 import cv2
 import glob
@@ -12,7 +12,7 @@ from pipeline.stage5_cells_ocr import recognize_grid
 
 
 def calculate_accuracy(grid, correct_grid):
-    """81 hucreden kacinin dogru okundugunu hesaplar."""
+    #81 hucreden kacinin dogru okundugunu hesaplar.
 
     correct = 0
 
